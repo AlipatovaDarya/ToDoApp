@@ -16,32 +16,48 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = ThemeColors.Night.supportSeparator,
+    secondary = ThemeColors.Night.supportOverlay,
+    tertiary = ThemeColors.Night.blue,
+    error = ThemeColors.Night.red,
+    scrim = ThemeColors.Night.green,
+    outline = ThemeColors.Night.grayLight,
+    outlineVariant = ThemeColors.Night.gray,
+
+    surface = ThemeColors.Night.backPrimary,
+    background = ThemeColors.Night.backSecondary,
+    surfaceTint = ThemeColors.Night.backElevated,
+
+
+    onPrimary = ThemeColors.Night.labelPrimary,
+    onSecondary = ThemeColors.Night.labelSecondary ,
+    onTertiary = ThemeColors.Night.labelTertiary,
+    onSurfaceVariant = ThemeColors.Night.labelDisable,
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = ThemeColors.Day.supportSeparator,
+    secondary = ThemeColors.Day.supportOverlay,
+    tertiary = ThemeColors.Day.blue,
+    error = ThemeColors.Day.red,
+    scrim = ThemeColors.Day.green,
+    outline = ThemeColors.Day.grayLight,
+    outlineVariant = ThemeColors.Day.gray,
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    surface = ThemeColors.Day.backPrimary,
+    background = ThemeColors.Day.backSecondary,
+    surfaceTint = ThemeColors.Day.backElevated,
+
+    onPrimary = ThemeColors.Day.labelPrimary,
+    onSecondary = ThemeColors.Day.labelSecondary ,
+    onTertiary = ThemeColors.Day.labelTertiary,
+    onSurfaceVariant = ThemeColors.Day.labelDisable,
 )
 
 @Composable
 fun ToDoApp3Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
