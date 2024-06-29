@@ -44,8 +44,8 @@ private val LightColorScheme = lightColorScheme(
     outline = ThemeColors.Day.grayLight,
     outlineVariant = ThemeColors.Day.gray,
 
-    surface = ThemeColors.Day.backPrimary,
-    background = ThemeColors.Day.backSecondary,
+    surface = ThemeColors.Day.backPrimary,  //тёмный
+    background = ThemeColors.Day.backSecondary, //светлый
     surfaceTint = ThemeColors.Day.backElevated,
 
     onPrimary = ThemeColors.Day.labelPrimary,

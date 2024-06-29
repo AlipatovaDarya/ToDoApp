@@ -1,79 +1,48 @@
 package com.example.todoapp3.repositories
 
-import android.content.ContentValues
-import android.util.Log
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import com.example.todoapp3.model.TodoItem
-import com.example.todoapp3.utils.TodoItemListSource
-import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.LocalDateTime
+import com.example.todoapp3.utils.TodoItemsListSource
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 
 class TodoItemsRepository {
-    val sourceList = TodoItemListSource()
-    val todoItems = MutableLiveData(sourceList.list)
-    val uncompletedItems = MutableLiveData(getUncompletedItems())
-    val completedItemsCounter = MutableLiveData(((
-            uncompletedItems.value?.size?.let {
-                todoItems.value?.size?.minus(
-                    it
-                )
-            }) ?: 0))
 
-    fun addNewItem(item: TodoItem) {
-        todoItems.value?.add(item)
-        getCompletedItemsCounter()
-    }
+    private val _todoItems = MutableStateFlow(TodoItemsListSource.sourceList)
 
-    fun getItemById(id: String): TodoItem? {
-        for (item in (todoItems.value ?: emptyList<TodoItem>())) {
-            if (item.id == id) {
-                return item
-            }
+    val todoItems: StateFlow<List<TodoItem>> = _todoItems.asStateFlow()
+
+    suspend fun getItemById(id: String): TodoItem? {
+        val index = _todoItems.value.indexOfFirst { it.id == id }
+        if (index >= 0) {
+            return _todoItems.value[index]
         }
         return null
     }
 
-
-    fun deleteItemById(id: String) {
-        var i = 0
-        while (i < (todoItems.value?.size ?: 0)){
-            if((todoItems.value?.get(i)?.id ?: -1) == id){
-                todoItems.value?.removeAt(index = i)
-                i--
-            }
-            i++
+    suspend fun deleteItemById(id: String) {
+        val index = _todoItems.value.indexOfFirst { it.id == id }
+        if (index >= 0) {
+            _todoItems.value.removeIf { it.id == id }
         }
-        getCompletedItemsCounter()
     }
 
-    fun getUncompletedItems(): MutableList<TodoItem> {
-        val res = mutableListOf<TodoItem>()
-        for (item in todoItems.value ?: emptyList()) {
-            if (!item.isCompleted) {
-                res.add(item)
-            }
+    suspend fun insertItem(item: TodoItem) {
+        val index = _todoItems.value.indexOfFirst { it.id == item.id }
+        if (index >= 0) {
+            _todoItems.update { it.apply { this[index] = item } }
+        } else {
+            _todoItems.update { it.apply { this.add(0, item) } }
         }
-        return res
     }
 
-    private fun getCompletedItemsCounter(){
-        getUncompletedItems()
-        completedItemsCounter.value = (
-                uncompletedItems.value?.size?.let {
-                    todoItems.value?.size?.minus(
-                        it
-                    )
-                }) ?: 0
+    suspend fun updateIsCompletedStatus(item: TodoItem) {
+        val index = _todoItems.value.indexOfFirst { it.id == item.id }
+        if (index >= 0) {
+            _todoItems.update { it.apply { this[index] = item } }
+        }
     }
-
-    fun editItem(item : TodoItem) {
-        deleteItemById(item.id)
-        todoItems.value?.add(item)
-        getCompletedItemsCounter()
-    }
-
 
 }

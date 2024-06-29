@@ -10,11 +10,15 @@
     <string name="task_has_status_low">У этой задачи статус низкая</string>
     <string name="show_information">Показать информацию</string>
     <string name="delete_task">Удалить задачу</string>
+    <string name="close_task">Закрыть задачу</string>
     <string name="save">СОХРАНИТЬ</string>
     <string name="what_needs_to_be_done">Что надо сделать…</string>
+    <string name="do_before">Сделать до</string>
     <string name="importance">Важность</string>
     <string name="ready">Готово</string>
+    <string name="okey">Ок</string>
     <string name="cancel">Отмена</string>
     <string name="low">Низкая</string>
+    <string name="date_has_already_passed">Эта дата уже прошла</string>
     <string name="medium">Удалить</string>
 </resources>
