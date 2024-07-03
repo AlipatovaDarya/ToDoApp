@@ -5,7 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import com.example.todoapp3.view.EditItemScreen
+import com.example.todoapp3.view.edit_item.EditItemScreen
 import com.example.todoapp3.view.TodoListScreen
 import com.example.todoapp3.viewModels.TodoItemsViewModel
 
@@ -16,10 +16,10 @@ fun AppScreen(
 ) {
     NavHost(
         navController = navController,
-        startDestination = "appScreen",
+        startDestination = MainDestinations.APP_SCREEN,
     ){
         navigation(
-            route = "appScreen",
+            route = MainDestinations.APP_SCREEN,
             startDestination = MainDestinations.HOME_LIST
         ) {
             composable(MainDestinations.ITEM_SCREEN) {
@@ -33,6 +33,7 @@ fun AppScreen(
 }
 
 object MainDestinations {
+    const val APP_SCREEN = "appScreen"
     const val HOME_LIST = "todoListScreen"
     const val ITEM_SCREEN = "editItemScreen"
 }

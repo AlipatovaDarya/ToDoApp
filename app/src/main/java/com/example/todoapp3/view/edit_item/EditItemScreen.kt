@@ -1,4 +1,4 @@
-package com.example.todoapp3.view
+package com.example.todoapp3.view.edit_item
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,13 +23,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -39,34 +37,41 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.todoapp3.R
 import com.example.todoapp3.model.Importance
 import com.example.todoapp3.model.TodoItem
-import com.example.todoapp3.navigation.MainDestinations
 import com.example.todoapp3.ui.theme.ToDoApp3Theme
+import com.example.todoapp3.utils.formatDate
+import com.example.todoapp3.utils.formatYear
 import com.example.todoapp3.view.general.MyDivider
 import com.example.todoapp3.view.general.PrimaryBodyText
+import com.example.todoapp3.view.general.SnackBar
 import com.example.todoapp3.viewModels.TodoItemsViewModel
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.DatePickerDefaults
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditItemScreen(todoItemsViewModel: TodoItemsViewModel, navController: NavController) {
-    val todoItem: State<TodoItem?> = todoItemsViewModel.curItem.observeAsState()
+    val todoItem: State<TodoItem?> = todoItemsViewModel.curItem.collectAsStateWithLifecycle()
     val text = remember { mutableStateOf(todoItem.value?.text ?: "") }
     val importance = remember { mutableStateOf(todoItem.value?.importance ?: Importance.MEDIUM) }
-    val pickedDate = remember { mutableStateOf(todoItem.value?.deadline ?: LocalDate.now()) }
+    val pickedDate = remember { mutableStateOf(todoItem.value?.deadline) }
+    val expanded = remember { mutableStateOf(false) }
+    val deadlineIsSelected = remember { mutableStateOf(todoItem.value?.deadline != null) }
+    val isChecked = remember { mutableStateOf(todoItem.value?.deadline != null) }
+    val snackbarVisible = remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     ToDoApp3Theme {
         Scaffold(
+            containerColor = MaterialTheme.colorScheme.surface,
             topBar = {
                 Surface(
                     modifier = Modifier
@@ -80,53 +85,39 @@ fun EditItemScreen(todoItemsViewModel: TodoItemsViewModel, navController: NavCon
                         scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
                         navigationIcon = {
                             Image(
-                                painter = painterResource(R.drawable.delete),
-                                contentDescription = stringResource(R.string.delete_task),
+                                painter = painterResource(R.drawable.close),
+                                contentDescription = stringResource(R.string.close_task),
                                 modifier = Modifier
                                     .padding(start = 26.dp, top = 6.dp)
                                     .clickable {
-                                        if (todoItemsViewModel.curItem.value != null) {
-                                            todoItemsViewModel.deleteItemById(
-                                                todoItemsViewModel.curItem.value?.id ?: ""
-                                            )
-                                        }
-                                        navController.navigate(MainDestinations.HOME_LIST)
+                                        navController.popBackStack()
                                     },
                                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
                             )
                         },
                         title = {},
-                        colors = TopAppBarDefaults.mediumTopAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.background,
-                        ),
                         actions = {
                             Text(
                                 text = stringResource(R.string.save),
                                 modifier = Modifier
                                     .padding(end = 26.dp, top = 6.dp)
                                     .clickable {
-                                        if (todoItemsViewModel.curItem.value != null) {
-                                            todoItemsViewModel.editItem(
-                                                text = text.value,
-                                                importance = importance.value,
-                                                deadline = pickedDate.value,
-                                                false,
-                                                LocalDate.now(),
+                                        todoItemsViewModel.insertItem(
+                                            TodoItem(
+                                                todoItem.value?.id ?: "${
+                                                    Random.nextLong(
+                                                        21,
+                                                        10_000_000_000
+                                                    )
+                                                }",
+                                                text.value,
+                                                importance.value,
+                                                if (deadlineIsSelected.value) pickedDate.value else null,
+                                                todoItem.value?.isCompleted ?: false,
+                                                LocalDate.now()
                                             )
-                                        } else {
-                                            todoItemsViewModel.addNewItem(
-                                                TodoItem(
-                                                    id = "${Random.nextLong(21, 10_000_000_000)}",
-                                                    text = text.value,
-                                                    importance = importance.value,
-                                                    deadline = pickedDate.value,
-                                                    false,
-                                                    LocalDate.now(),
-                                                    null
-                                                )
-                                            )
-                                        }
-                                        navController.navigate(MainDestinations.HOME_LIST)
+                                        )
+                                        navController.popBackStack()
                                     },
                                 color = MaterialTheme.colorScheme.tertiary,
                             )
@@ -151,21 +142,18 @@ fun EditItemScreen(todoItemsViewModel: TodoItemsViewModel, navController: NavCon
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(100.dp, 1000.dp)
+                        .heightIn(100.dp, Int.MAX_VALUE.dp)
                         .padding(horizontal = 22.dp)
-                        .shadow(2.dp, shape = RoundedCornerShape(12.dp), clip = false)
+                        .shadow(
+                            2.dp,
+                            shape = RoundedCornerShape(12.dp),
+                            clip = false,
+                            spotColor = MaterialTheme.colorScheme.outline
+                        )
                         .padding(2.dp)
                         .background(
                             color = MaterialTheme.colorScheme.background,
                             shape = RoundedCornerShape(12.dp)
-                        ),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        disabledTextColor = MaterialTheme.colorScheme.background,
-                        focusedBorderColor = MaterialTheme.colorScheme.background,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.background,
-                        disabledBorderColor = MaterialTheme.colorScheme.background,
-                        cursorColor = MaterialTheme.colorScheme.outlineVariant,
-
                         ),
                     placeholder = {
                         Text(
@@ -176,7 +164,6 @@ fun EditItemScreen(todoItemsViewModel: TodoItemsViewModel, navController: NavCon
                     }
                 )
                 Spacer(modifier = Modifier.padding(vertical = 12.dp))
-                val expanded = remember { mutableStateOf(false) }
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 26.dp)
@@ -187,9 +174,7 @@ fun EditItemScreen(todoItemsViewModel: TodoItemsViewModel, navController: NavCon
                             .clickable {
                                 expanded.value = true
                             },
-
-                        )
-
+                    )
                     DropdownMenu(
                         modifier = Modifier.padding(start = 10.dp),
                         expanded = expanded.value,
@@ -235,14 +220,9 @@ fun EditItemScreen(todoItemsViewModel: TodoItemsViewModel, navController: NavCon
                     }
                 )
                 MyDivider(modifier = Modifier.padding(vertical = 20.dp, horizontal = 26.dp))
-                val deadlineIsSelected =
-                    remember { mutableStateOf(todoItem.value?.deadline != null) }
-                val isChecked = remember { mutableStateOf(todoItem.value?.deadline != null) }
                 val formattedDate = remember {
                     derivedStateOf {
-                        DateTimeFormatter
-                            .ofPattern("MMM dd yyyy")
-                            .format(pickedDate.value)
+                        pickedDate.value?.let { formatDate(it) }
                     }
                 }
                 val dateDialogState = rememberMaterialDialogState()
@@ -254,14 +234,14 @@ fun EditItemScreen(todoItemsViewModel: TodoItemsViewModel, navController: NavCon
                         modifier = Modifier.padding(horizontal = 26.dp)
                     ) {
                         PrimaryBodyText(
-                            text = "Сделать до",
+                            text = stringResource(R.string.do_before),
                             modifier = Modifier.clickable {
                                 dateDialogState.show()
                             }
                         )
                         if (deadlineIsSelected.value && isChecked.value) {
                             Text(
-                                text = formattedDate.value,
+                                text = formattedDate.value ?: "",
                                 color = MaterialTheme.colorScheme.tertiary,
                                 modifier = Modifier.clickable {
                                     dateDialogState.show()
@@ -273,9 +253,11 @@ fun EditItemScreen(todoItemsViewModel: TodoItemsViewModel, navController: NavCon
                         modifier = Modifier.padding(end = 40.dp),
                         checked = isChecked.value,
                         onCheckedChange = {
-                            isChecked.value = !isChecked.value
+                            isChecked.value = it
                             if (isChecked.value) {
                                 dateDialogState.show()
+                            } else{
+                                pickedDate.value = null
                             }
                         },
                         colors = SwitchDefaults.colors(
@@ -296,11 +278,16 @@ fun EditItemScreen(todoItemsViewModel: TodoItemsViewModel, navController: NavCon
                                     todoItemsViewModel.curItem.value?.id ?: ""
                                 )
                             }
-                            navController.navigate(MainDestinations.HOME_LIST)
+                            navController.popBackStack()
                         },
                     color = if (text.value.isEmpty()) MaterialTheme.colorScheme.onTertiary
                     else MaterialTheme.colorScheme.error
                 )
+                if(snackbarVisible.value){
+                    SnackBar(text = stringResource(id = R.string.date_has_already_passed), snackbarVisible = snackbarVisible) {
+                        snackbarVisible.value = false
+                    }
+                }
                 MaterialDialog(
                     dialogState = dateDialogState,
                     buttons = {
@@ -309,29 +296,28 @@ fun EditItemScreen(todoItemsViewModel: TodoItemsViewModel, navController: NavCon
                             textStyle = TextStyle(color = MaterialTheme.colorScheme.tertiary)
                         ) {
                             deadlineIsSelected.value = true
+                            if (pickedDate.value?.isBefore(LocalDate.now()) == true){
+                                snackbarVisible.value = true
+                            }
                         }
                         negativeButton(
                             text = stringResource(R.string.cancel),
                             textStyle = TextStyle(color = MaterialTheme.colorScheme.tertiary)
                         ) {
-                            if (!deadlineIsSelected.value) {
-                                isChecked.value = false
-                            }
+                            isChecked.value = deadlineIsSelected.value
                         }
                     }
                 ) {
                     datepicker(
                         initialDate = LocalDate.now(),
-                        title = DateTimeFormatter
-                            .ofPattern("  yyyy")
-                            .format(LocalDate.now()),
+                        title = formatYear(LocalDate.now()),
                         colors = DatePickerDefaults.colors(
                             headerBackgroundColor = MaterialTheme.colorScheme.tertiary,
                             dateActiveBackgroundColor = MaterialTheme.colorScheme.tertiary,
-
-                            )
+                        )
                     ) {
                         pickedDate.value = it
+                        isChecked.value = true
                     }
                 }
             }

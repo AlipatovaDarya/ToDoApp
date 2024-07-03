@@ -24,9 +24,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -34,11 +34,10 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.todoapp3.R
-import com.example.todoapp3.model.TodoItem
 import com.example.todoapp3.navigation.MainDestinations
 import com.example.todoapp3.ui.theme.ToDoApp3Theme
 import com.example.todoapp3.view.general.myShadow
@@ -51,105 +50,44 @@ fun TodoListScreen(
     todoItemsViewModel: TodoItemsViewModel,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
     ToDoApp3Theme {
-        val completedItemsVisibilityIsOn = todoItemsViewModel.visibilityIsOn.observeAsState()
-        val curItemsList: State<MutableList<TodoItem>>
-        if(completedItemsVisibilityIsOn.value == true){
-            curItemsList = todoItemsViewModel.todoItems.observeAsState(mutableListOf<TodoItem>())
-        } else{
-            curItemsList = todoItemsViewModel.uncompletedItems.observeAsState(mutableListOf<TodoItem>())
-        }
-        val completedItemsCounter = todoItemsViewModel.completedItemsCounter.observeAsState()
+        val visibilityIsOn = todoItemsViewModel.visibilityIsOn.collectAsStateWithLifecycle()
+        val curItemsList = todoItemsViewModel.todoItems.collectAsStateWithLifecycle()
+        val completedItemsCounter =
+            todoItemsViewModel.completedItemsCounter.collectAsStateWithLifecycle()
+
         Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            containerColor = MaterialTheme.colorScheme.surface,
+            modifier = Modifier
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 Surface(
                     modifier = Modifier
-                        .fillMaxWidth()
                         .shadow(
                             elevation = if (scrollBehavior.state.collapsedFraction > 0.5) 6.dp else 0.dp,
                             shape = RoundedCornerShape(0.dp)
-                        )
+                        ),
                 ) {
-                    LargeTopAppBar(
-                        title = {
-                            Column {
-                                if (scrollBehavior.state.collapsedFraction < 0.5) {
-                                    Text(text =
-                                    stringResource(R.string.my_items),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.titleLarge,
-                                        modifier = Modifier.padding(start = 26.dp)
-                                    )
-                                } else {
-                                    Text(
-                                        stringResource(R.string.my_items),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(start = 26.dp)
-                                    )
-                                }
-
-                            }
-                        },
-                        colors = TopAppBarDefaults.mediumTopAppBarColors(
-                            titleContentColor = MaterialTheme.colorScheme.onPrimary,
-
-                            ),
-                        actions = {
-                            if (scrollBehavior.state.collapsedFraction > 0.8) {
-                                Image(
-                                    painter = painterResource(
-                                        if (completedItemsVisibilityIsOn.value == true) R.drawable.visibility_on
-                                        else R.drawable.visibility_off
-                                    ),
-                                    contentDescription = if (completedItemsVisibilityIsOn.value == true) stringResource(R.string.hide_completed_tasks)
-                                    else stringResource(R.string.show_completed_tasks),
-                                    modifier = Modifier
-                                        .clickable {
-                                            todoItemsViewModel.visibilityIsOn.value =
-                                                todoItemsViewModel.visibilityIsOn.value?.let { !it }
-                                                    ?: false
-                                        }
-                                        .padding(end = 26.dp),
-                                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary)
-                                )
-                            }
-                        },
+                    TopBar(
+                        visibilityIsOn = visibilityIsOn,
+                        modifier = Modifier
+                            .padding(end = 34.dp)
+                            .clickable { todoItemsViewModel.onVisibilityIsOnChange() },
                         scrollBehavior = scrollBehavior
                     )
+
                 }
             },
             floatingActionButton = {
-                FloatingActionButton(
-                    containerColor = MaterialTheme.colorScheme.tertiary,
-                    onClick = {
-                        todoItemsViewModel.curItem.value = null
-                        navController.navigate(MainDestinations.ITEM_SCREEN)
-                    },
-                    shape = CircleShape,
-                    modifier = Modifier.padding(bottom = 18.dp, end = 18.dp)
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.add),
-                        contentDescription = stringResource(R.string.add_new_task),
-                        colorFilter = ColorFilter.tint(Color.White)
-                    )
-                }
+                Fab(onClick = {
+                    todoItemsViewModel.onCurItemOnChange(null)
+                    navController.navigate(MainDestinations.ITEM_SCREEN)
+                })
             }
 
         ) { innerPadding ->
             LazyColumn(
                 contentPadding = innerPadding,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(12.dp)
-                    ),
             )
             {
                 item {
@@ -161,7 +99,7 @@ fun TodoListScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(start = 44.dp, end = 34.dp, bottom = 10.dp),
+                                .padding(start = 44.dp, bottom = 10.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             Text(
@@ -169,18 +107,11 @@ fun TodoListScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onTertiary,
                             )
-                            Image(
-                                painter = painterResource(
-                                    if (completedItemsVisibilityIsOn.value == true) R.drawable.visibility_on
-                                    else R.drawable.visibility_off
-                                ),
-                                contentDescription = if (completedItemsVisibilityIsOn.value == true) stringResource(R.string.hide_completed_tasks)
-                                else stringResource(R.string.show_completed_tasks),
+                            VisibilityImage(
+                                visibilityIsOn,
                                 modifier = Modifier
-                                    .clickable {
-                                        todoItemsViewModel.visibilityIsOn.value = todoItemsViewModel.visibilityIsOn.value?.let { !it } ?: false
-                                    },
-                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary)
+                                    .padding(end = 34.dp)
+                                    .clickable { todoItemsViewModel.onVisibilityIsOnChange() }
                             )
                         }
                     }
@@ -207,36 +138,109 @@ fun TodoListScreen(
                         )
                     }
                 }
-                items(curItemsList.value){ item ->
-                    TodoItemScreen(todoItem = item, todoItemsViewModel = todoItemsViewModel, navController = navController)
+
+                items(curItemsList.value, key = { item -> item.id }) { item ->
+                    TodoItemScreen(
+                        todoItem = item,
+                        todoItemsViewModel = todoItemsViewModel,
+                        navController = navController
+                    )
                 }
 
                 item {
-                    Text(
-                        text = stringResource(R.string.new_),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, bottom = 30.dp)
-                            .myShadow(offsetY = 2.5.dp, blurRadius = 2.5.dp, borderRadius = 10.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.background,
-                                shape = RoundedCornerShape(
-                                    topStart = 0.dp,
-                                    topEnd = 0.dp,
-                                    bottomStart = 12.dp,
-                                    bottomEnd = 12.dp
-                                )
-                            )
-                            .padding(bottom = 20.dp, start = 48.dp, top = 18.dp)
-                            .clickable {
-                                todoItemsViewModel.curItem.value = null
-                                navController.navigate(MainDestinations.ITEM_SCREEN)
-                            },
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    BottomButtonNewTask {
+                        todoItemsViewModel.onCurItemOnChange(null)
+                        navController.navigate(MainDestinations.ITEM_SCREEN)
+                    }
                 }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBar(
+    visibilityIsOn: State<Boolean>,
+    modifier: Modifier,
+    scrollBehavior: TopAppBarScrollBehavior
+) {
+    LargeTopAppBar(
+        title = {
+            Text(
+                text = stringResource(R.string.my_items),
+                style = if (scrollBehavior.state.collapsedFraction < 0.5)
+                    MaterialTheme.typography.titleLarge
+                else MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = 26.dp)
+            )
+        },
+        actions = {
+            if (scrollBehavior.state.collapsedFraction > 0.8) {
+                VisibilityImage(
+                    visibilityIsOn,
+                    modifier = modifier
+                )
+            }
+        },
+        scrollBehavior = scrollBehavior
+    )
+}
+
+@Composable
+fun VisibilityImage(visibilityIsOn: State<Boolean>, modifier: Modifier) {
+    Image(
+        painter = painterResource(
+            if (visibilityIsOn.value) R.drawable.visibility_on
+            else R.drawable.visibility_off
+        ),
+        contentDescription = if (visibilityIsOn.value) stringResource(R.string.hide_completed_tasks)
+        else stringResource(R.string.show_completed_tasks),
+        modifier = modifier,
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary)
+    )
+}
+
+@Composable
+fun Fab(onClick: () -> Unit) {
+    FloatingActionButton(
+        containerColor = MaterialTheme.colorScheme.tertiary,
+        onClick = {
+            onClick()
+        },
+        shape = CircleShape,
+        modifier = Modifier.padding(bottom = 18.dp, end = 18.dp)
+    ) {
+        Image(
+            painter = painterResource(R.drawable.add),
+            contentDescription = stringResource(R.string.add_new_task),
+            colorFilter = ColorFilter.tint(Color.White)
+        )
+    }
+}
+
+@Composable
+fun BottomButtonNewTask(onClick: () -> Unit) {
+    Text(
+        text = stringResource(R.string.new_),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, bottom = 30.dp)
+            .myShadow(offsetY = 2.5.dp, blurRadius = 2.5.dp, borderRadius = 10.dp)
+            .background(
+                color = MaterialTheme.colorScheme.background,
+                shape = RoundedCornerShape(
+                    topStart = 0.dp,
+                    topEnd = 0.dp,
+                    bottomStart = 12.dp,
+                    bottomEnd = 12.dp
+                )
+            )
+            .padding(bottom = 20.dp, start = 48.dp, top = 18.dp)
+            .clickable {
+                onClick()
+            },
+        color = MaterialTheme.colorScheme.onTertiary,
+        style = MaterialTheme.typography.bodyMedium
+    )
 }

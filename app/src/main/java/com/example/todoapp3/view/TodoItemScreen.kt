@@ -1,5 +1,6 @@
 package com.example.todoapp3.view
 
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,16 +50,19 @@ fun TodoItemScreen(
                 .padding(horizontal = 16.dp)
                 .myShadow(offsetY = 3.dp, blurRadius = 2.5.dp)
                 .background(MaterialTheme.colorScheme.background)
-                .padding(top = 4.dp, end = 6.dp)
-            ,
+                .padding(top = 4.dp, end = 6.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Checkbox(
                 checked = checkedState.value,
                 onCheckedChange = {
                     checkedState.value = it
+                    todoItem.isCompleted = it
                     todoItemsViewModel.getItemById(todoItem.id)
-                    todoItemsViewModel.editItem(isCompleted = checkedState.value)
+                    todoItemsViewModel.changeIsCompletedStatus(
+                        item = todoItem,
+                        isCompleted = checkedState.value
+                    )
                 },
                 colors = CheckboxDefaults.colors(
                     checkedColor = MaterialTheme.colorScheme.scrim,
@@ -76,7 +80,7 @@ fun TodoItemScreen(
                     .weight(1f)
                     .padding(top = 10.dp)
             ) {
-                Box{
+                Box {
                     var itemText = todoItem.text
                     if (!checkedState.value && todoItem.importance == Importance.HIGH) {
                         Image(
@@ -87,7 +91,7 @@ fun TodoItemScreen(
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.error)
                         )
                         itemText = "    $itemText"
-                    } else if(!checkedState.value && todoItem.importance == Importance.LOW){
+                    } else if (!checkedState.value && todoItem.importance == Importance.LOW) {
                         Image(
                             painter = painterResource(R.drawable.arrow_back),
                             contentDescription = stringResource(R.string.task_has_status_low),
@@ -125,7 +129,7 @@ fun TodoItemScreen(
                 contentDescription = stringResource(R.string.show_information),
                 modifier = Modifier
                     .clickable {
-                        todoItemsViewModel.curItem.value = todoItem
+                        todoItemsViewModel.onCurItemOnChange(todoItem)
                         navController.navigate(MainDestinations.ITEM_SCREEN)
                     }
                     .padding(start = 8.dp, end = 10.dp, top = 12.dp),
