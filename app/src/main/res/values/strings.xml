@@ -21,4 +21,13 @@
     <string name="low">Низкая</string>
     <string name="date_has_already_passed">Эта дата уже прошла</string>
     <string name="medium">Удалить</string>
+    <string name="error_adding_item">Ошибка добавления элемента</string>
+    <string name="error_deleting_item">Ошибка удаления элемента</string>
+    <string name="error_editing_is_competed_item_status">Ошибка редактирования статуса элемента</string>
+    <string name="error_synchronization_with_server">Ошибка синхронизации данных с сервером</string>
+    <string name="error_deleting_from_server">Ошибка удаления элемента с сервера</string>
+    <string name="error_connection">Ошибка подключения</string>
+    <string name="error_receiving_data_from_server">Ошибка получения данных с сервера</string>
+    <string name="error_code">Код ошибки: </string>
+    <string name="retry">Повторить</string>
 </resources>
