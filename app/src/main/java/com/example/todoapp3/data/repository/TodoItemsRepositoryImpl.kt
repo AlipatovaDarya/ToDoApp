@@ -184,7 +184,6 @@ class TodoItemsRepositoryImpl(
                 val response = todoApiService.deleteTodoItem(
                     todo.id,
                     revision,
-
                     ).execute()
                 if (response.isSuccessful) {
                     todoDao.deleteTodoById(todo.id)

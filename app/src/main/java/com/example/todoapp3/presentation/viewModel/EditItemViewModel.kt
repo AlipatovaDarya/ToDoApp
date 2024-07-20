@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.todoapp3.data.network.retrofit.model.ExceptionWithErrorCode
 import com.example.todoapp3.data.repository.TodoItemsRepositoryImpl
 import com.example.todoapp3.data.room.entity.TodoItem
-import com.example.todoapp3.presentation.EditTodoUiState
+import com.example.todoapp3.presentation.edit_task.EditTodoUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -30,4 +30,11 @@
     <string name="error_receiving_data_from_server">Ошибка получения данных с сервера</string>
     <string name="error_code">Код ошибки: </string>
     <string name="retry">Повторить</string>
+    <string name="go_to_theme_setting">Перейти в настройки темы</string>
+    <string name="go_to_about_app">Перейти в экран о приложении</string>
+    <string name="arrow_back_text">Вернуться на главный экран</string>
+    <string name="choose_theme">Выберите тему приложения</string>
+    <string name="light">Светлая</string>
+    <string name="dark">Тёмная</string>
+    <string name="system">Системная</string>
 </resources>
