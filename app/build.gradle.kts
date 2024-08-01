@@ -67,6 +67,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose-android:2.8.3")
     implementation("androidx.tracing:tracing-perfetto-handshake:1.0.0")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.wear.compose:compose-material3:1.0.0-alpha23")
+    implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.2")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
@@ -105,5 +107,20 @@ dependencies {
 
     // SwipesRefresh
     implementation("com.google.accompanist:accompanist-swiperefresh:0.19.0")
+
+    //divKit
+    implementation("com.yandex.div:div:30.9.0")
+    implementation("com.yandex.div:div-core:30.9.0")
+    implementation("com.yandex.div:div-json:30.9.0")
+    implementation("com.yandex.div:picasso:30.9.0")
+    implementation("com.yandex.div:div-pinch-to-zoom:30.9.0")
+    implementation("com.yandex.div:div-rive:30.9.0")
+    implementation("com.yandex.div:glide:30.9.0")
+
+    // dataStore
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.datastore:datastore-preferences-core:1.1.1")
+
+
 
 }

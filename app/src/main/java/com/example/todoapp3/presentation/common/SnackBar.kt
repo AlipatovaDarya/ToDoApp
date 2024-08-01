@@ -26,7 +26,7 @@ fun SnackBar(text: String, snackbarVisible: State<Boolean>, onClick: () -> Unit)
             action = {
                 Button(
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiary
+                        containerColor = MaterialTheme.colorScheme.primary
                     ),
                     onClick = { onClick() }) {
                     Text(text = stringResource(id = R.string.okey))

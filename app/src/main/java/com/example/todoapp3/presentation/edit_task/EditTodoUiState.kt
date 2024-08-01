@@ -1,15 +1,14 @@
-package com.example.todoapp3.presentation
+package com.example.todoapp3.presentation.edit_task
 
 import com.example.todoapp3.data.network.ConnectivityObserver
 import com.example.todoapp3.data.room.entity.TodoItem
 
+
 /**
- * ui state for part of home list of items
+ * ui state for part of editing item
  */
-data class TodoListUiState(
-    val visibilityIsOn: Boolean = true,
-    val todoItems: List<TodoItem> = emptyList(),
-    val completedItemsCounter: Int = 0,
+data class EditTodoUiState(
+    val curTodoItem: TodoItem? = null,
     val networkStatus: ConnectivityObserver.Status = ConnectivityObserver.Status.Unavailable,
     val errorCode: Int? = null
 )

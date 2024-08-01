@@ -1,4 +1,4 @@
-package com.example.todoapp3.presentation
+package com.example.todoapp3.presentation.task_list
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.wear.compose.material3.ripple
 import com.example.todoapp3.R
 import com.example.todoapp3.data.network.ConnectivityObserver
 import com.example.todoapp3.data.room.entity.TodoItem
@@ -72,6 +75,7 @@ fun TodoListScreen(
     onVisibilityIsOnChange: () -> Unit,
     syncRemote: () -> Unit
 ) {
+
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -104,6 +108,25 @@ fun TodoListScreen(
     }
 
 
+    /*LaunchedEffect(TODO()) {
+        scope.launch {
+            val result = snackbarHostState.showSnackbar(
+                message = "Удалить $taskText",
+                actionLabel = "Отменить",
+                duration = SnackbarDuration.Indefinite
+            )
+            when (result) {
+                SnackbarResult.Dismissed -> {
+                    Toast.makeText(context, "Задача удалена", Toast.LENGTH_SHORT).show()
+                }
+                SnackbarResult.ActionPerformed -> {
+                    Toast.makeText(context, "Задача восстановлена", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }*/
+
+
     Scaffold(
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
@@ -121,10 +144,14 @@ fun TodoListScreen(
             ) {
                 TopBar(
                     uiState = uiState,
-                    modifier = Modifier
-                        .padding(end = 34.dp)
-                        .clickable { onVisibilityIsOnChange() },
-                    scrollBehavior = scrollBehavior
+                    onVisibilityIsOnChange,
+                    scrollBehavior = scrollBehavior,
+                    onThemeSettingsClick = {
+                        navController.navigate(MainDestinations.SETTINGS_SCREEN)
+                    },
+                    onAboutAppClick = {
+                        navController.navigate(MainDestinations.ABOUT_APP_SCREEN)
+                    }
                 )
 
             }
@@ -136,6 +163,7 @@ fun TodoListScreen(
         }
 
     ) { innerPadding ->
+
         LazyColumn(
             contentPadding = innerPadding,
         )
@@ -157,12 +185,20 @@ fun TodoListScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onTertiary,
                         )
-                        VisibilityImage(
-                            uiState.visibilityIsOn,
-                            modifier = Modifier
-                                .padding(end = 34.dp)
-                                .clickable { onVisibilityIsOnChange() }
-                        )
+                        Row {
+                            ThemeSettingsImage {
+                                navController.navigate(MainDestinations.SETTINGS_SCREEN)
+                            }
+                            Spacer(modifier = Modifier.padding(10.dp))
+                            AboutAppImage {
+                                navController.navigate(MainDestinations.ABOUT_APP_SCREEN)
+                            }
+                            Spacer(modifier = Modifier.padding(10.dp))
+                            VisibilityImage(
+                                uiState.visibilityIsOn,
+                                onVisibilityIsOnChange
+                            )
+                        }
                     }
                 }
             }
@@ -216,7 +252,9 @@ fun TodoListScreen(
 @Composable
 fun TopBar(
     uiState: TodoListUiState,
-    modifier: Modifier,
+    onVisibilityIsOnChange: () -> Unit,
+    onThemeSettingsClick: () -> Unit,
+    onAboutAppClick: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior
 ) {
     LargeTopAppBar(
@@ -231,13 +269,55 @@ fun TopBar(
         },
         actions = {
             if (scrollBehavior.state.collapsedFraction > 0.8) {
-                VisibilityImage(
-                    uiState.visibilityIsOn,
-                    modifier = modifier
-                )
+                Row {
+                    ThemeSettingsImage { onThemeSettingsClick() }
+                    Spacer(modifier = Modifier.padding(10.dp))
+                    AboutAppImage { onAboutAppClick() }
+                    Spacer(modifier = Modifier.padding(10.dp))
+                    VisibilityImage(
+                        uiState.visibilityIsOn,
+                        onVisibilityIsOnChange
+                    )
+                }
             }
         },
         scrollBehavior = scrollBehavior
+    )
+}
+
+@Composable
+fun AboutAppImage(onClick: () -> Unit) {
+    Image(
+        painter = painterResource(
+            R.drawable.about_app
+        ),
+        contentDescription = stringResource(R.string.go_to_about_app),
+        modifier = Modifier
+            .clickable(
+                interactionSource = remember {
+                    MutableInteractionSource()
+                },
+                indication = ripple()
+            ) { onClick() },
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+    )
+}
+
+@Composable
+fun ThemeSettingsImage(onClick: () -> Unit) {
+    Image(
+        painter = painterResource(
+            R.drawable.theme_settings
+        ),
+        contentDescription = stringResource(R.string.go_to_theme_setting),
+        modifier = Modifier
+            .clickable(
+                interactionSource = remember {
+                    MutableInteractionSource()
+                },
+                indication = ripple()
+            ) { onClick() },
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
     )
 }
 
@@ -246,7 +326,7 @@ fun TopBar(
  * Composable function for show VisibilityImage in home list of items
  */
 @Composable
-fun VisibilityImage(visibilityIsOn: Boolean, modifier: Modifier) {
+fun VisibilityImage(visibilityIsOn: Boolean, onVisibilityIsOnChange: () -> Unit) {
     Image(
         painter = painterResource(
             if (visibilityIsOn) R.drawable.visibility_on
@@ -254,8 +334,15 @@ fun VisibilityImage(visibilityIsOn: Boolean, modifier: Modifier) {
         ),
         contentDescription = if (visibilityIsOn) stringResource(R.string.hide_completed_tasks)
         else stringResource(R.string.show_completed_tasks),
-        modifier = modifier,
-        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.tertiary)
+        modifier = Modifier
+            .padding(end = 34.dp)
+            .clickable(
+                interactionSource = remember {
+                    MutableInteractionSource()
+                },
+                indication = ripple()
+            ) { onVisibilityIsOnChange() },
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
     )
 }
 
@@ -265,7 +352,7 @@ fun VisibilityImage(visibilityIsOn: Boolean, modifier: Modifier) {
 @Composable
 fun Fab(onClick: () -> Unit) {
     FloatingActionButton(
-        containerColor = MaterialTheme.colorScheme.tertiary,
+        containerColor = MaterialTheme.colorScheme.primary,
         onClick = {
             onClick()
         },
@@ -285,6 +372,9 @@ fun Fab(onClick: () -> Unit) {
  */
 @Composable
 fun BottomButtonNewTask(onClick: () -> Unit) {
+    val mutableInteractionSource = remember { MutableInteractionSource() }
+    val pressed = mutableInteractionSource.collectIsPressedAsState()
+
     Text(
         text = stringResource(R.string.new_),
         modifier = Modifier
@@ -301,10 +391,14 @@ fun BottomButtonNewTask(onClick: () -> Unit) {
                 )
             )
             .padding(bottom = 20.dp, start = 48.dp, top = 18.dp)
-            .clickable {
+            .clickable(
+                interactionSource = mutableInteractionSource,
+                indication = null
+            ) {
                 onClick()
             },
-        color = MaterialTheme.colorScheme.onTertiary,
+        color = if (!pressed.value) MaterialTheme.colorScheme.onTertiary
+        else MaterialTheme.colorScheme.onSurfaceVariant,
         style = MaterialTheme.typography.bodyMedium
     )
 }

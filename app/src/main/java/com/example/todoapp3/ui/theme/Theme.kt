@@ -2,17 +2,8 @@ package com.example.todoapp3.ui.theme
 
 import android.app.Activity
 import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,22 +13,33 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+
 
 private val DarkColorScheme = darkColorScheme(
-    primary = ThemeColors.Night.supportSeparator,
+    tertiary = ThemeColors.Night.supportSeparator,
     secondary = ThemeColors.Night.supportOverlay,
-    tertiary = ThemeColors.Night.blue,
+    primary = ThemeColors.Night.blue,
     error = ThemeColors.Night.red,
-    scrim = ThemeColors.Night.green,
-    outline = ThemeColors.Night.grayLight,
+    scrim = ThemeColors.Night.labelSecondary,
+    surfaceContainerLowest = ThemeColors.Night.green,
     outlineVariant = ThemeColors.Night.gray,
+    outline = ThemeColors.Night.grayLight,
 
     surface = ThemeColors.Night.backPrimary,
     background = ThemeColors.Night.backSecondary,
@@ -48,25 +50,29 @@ private val DarkColorScheme = darkColorScheme(
     onSecondary = ThemeColors.Night.labelSecondary ,
     onTertiary = ThemeColors.Night.labelTertiary,
     onSurfaceVariant = ThemeColors.Night.labelDisable,
+    onTertiaryContainer = ThemeColors.Night.redLight
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = ThemeColors.Day.supportSeparator,
+    tertiary= ThemeColors.Day.supportSeparator,
     secondary = ThemeColors.Day.supportOverlay,
-    tertiary = ThemeColors.Day.blue,
+    primary = ThemeColors.Day.blue,
     error = ThemeColors.Day.red,
-    scrim = ThemeColors.Day.green,
-    outline = ThemeColors.Day.grayLight,
+    scrim = ThemeColors.Day.labelSecondary,
+    surfaceContainerLowest = ThemeColors.Day.green,
     outlineVariant = ThemeColors.Day.gray,
+    outline = ThemeColors.Day.grayLight,
 
-    surface = ThemeColors.Day.backPrimary,  //тёмный
-    background = ThemeColors.Day.backSecondary, //светлый
+
+    surface = ThemeColors.Day.backPrimary,
+    background = ThemeColors.Day.backSecondary,
     surfaceTint = ThemeColors.Day.backElevated,
 
     onPrimary = ThemeColors.Day.labelPrimary,
     onSecondary = ThemeColors.Day.labelSecondary ,
     onTertiary = ThemeColors.Day.labelTertiary,
     onSurfaceVariant = ThemeColors.Day.labelDisable,
+    onTertiaryContainer = ThemeColors.Day.redLight
 )
 
 @Composable
@@ -75,6 +81,7 @@ fun ToDoApp3Theme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
